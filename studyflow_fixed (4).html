@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>StudyFlow – LMS Prototype</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root {
+  --bg:#f5f3f0; --card:#fff; --primary:#7c3d3d; --primary-pale:#f5eaea;
+  --accent:#c17b4e; --text:#1a1714; --text-muted:#7a7370; --text-light:#b0aaa8;
+  --border:#e8e3df; --success:#4a8c6f; --warning:#c17b4e; --danger:#c44c4c;
+  --info:#4a6fa5; --header-h:56px; --radius:16px; --radius-sm:10px;
+  --shadow:0 2px 16px rgba(0,0,0,.07); --shadow-lg:0 8px 40px rgba(0,0,0,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;min-height:100vh;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);overflow-x:hidden;}
+.site-header{position:fixed;top:0;left:0;right:0;z-index:300;height:var(--header-h);background:var(--card);border-bottom:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.06);display:flex;align-items:center;padding:0 16px;gap:0;}
+.topbar-left{display:flex;align-items:center;flex-shrink:0;min-width:80px;}
+.topbar-title{font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:var(--text);white-space:nowrap;}
+.topbar-back{display:flex;align-items:center;gap:2px;color:var(--primary);font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;cursor:pointer;}
+.top-nav{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;}
+/* Legacy top-nav hidden — navigation moved to bottom bar */
+.top-nav{display:none!important;}
+/* ── Fixed Bottom Navigation Bar (fixes Heuristic #7 — always accessible) ── */
+:root{--bottom-nav-h:62px;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:300;height:var(--bottom-nav-h);background:var(--card);border-top:1px solid var(--border);box-shadow:0 -2px 10px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-around;padding:0 4px;padding-bottom:env(safe-area-inset-bottom);}
+.bottom-nav.hidden{display:none;}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:1;height:52px;border-radius:10px;cursor:pointer;text-decoration:none;transition:background .15s;position:relative;}
+.nav-item:active{background:var(--primary-pale);}
+.nav-icon{font-size:22px;line-height:1;}
+.nav-label{font-size:9px;font-weight:600;color:var(--text-muted);line-height:1;}
+.nav-item.active .nav-label{color:var(--primary);}
+.nav-item.active .nav-icon{filter:drop-shadow(0 0 2px rgba(124,61,61,.3));}
+.nav-item.active::after{content:'';position:absolute;top:4px;width:22px;height:2.5px;border-radius:2px;background:var(--primary);}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-shrink:0;min-width:40px;justify-content:flex-end;}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;text-decoration:none;flex-shrink:0;cursor:pointer;}
+.page-content{padding:16px;padding-top:calc(var(--header-h) + 14px);padding-bottom:calc(var(--bottom-nav-h) + 16px);max-width:600px;margin:0 auto;}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px;}
+.section-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin:16px 0 10px;}
+.btn-primary{width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-size:16px;font-weight:600;font-family:'Sora',sans-serif;cursor:pointer;transition:.2s;}
+.btn-primary:active{opacity:.85;transform:scale(.98);}
+.btn-ghost{flex:1;background:var(--bg);color:var(--text);border:none;border-radius:var(--radius-sm);padding:14px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.btn-danger{flex:1;background:var(--danger);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.btn-confirm{flex:1;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.assign-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:.15s;text-decoration:none;}
+.assign-item:last-child{border-bottom:none;padding-bottom:0;}
+.assign-item:active{opacity:.7;}
+.assign-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.dot-due{background:var(--danger);} .dot-soon{background:var(--warning);} .dot-ok{background:var(--success);}
+.assign-info{flex:1;min-width:0;}
+.assign-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.assign-meta{font-size:12px;color:var(--text-muted);margin-top:1px;}
+.assign-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;flex-shrink:0;white-space:nowrap;}
+.badge-due{background:#c44c4c;color:#fff;}
+.badge-soon{background:#9a5e2a;color:#fff;}
+.badge-submitted{background:#2d7a52;color:#fff;}
+.badge-late{background:#a83232;color:#fff;}
+.badge-open{background:#2d5a8e;color:#fff;}
+.form-group{margin-bottom:16px;}
+.form-group label{font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;}
+.form-group input{width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);transition:.2s;outline:none;background:var(--bg);}
+.form-group input:focus{border-color:var(--primary);background:#fff;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px);}
+.modal-overlay.show{display:flex;}
+.modal-sheet{background:var(--card);border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:600px;animation:slideUp .25s ease;}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
+.modal-title{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px;}
+.modal-actions{display:flex;gap:10px;}
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;padding:12px 20px;border-radius:30px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.exam-chip{background:var(--info);color:#fff;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;}
+.midterm-chip{background:var(--info);color:#fff;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;}
+.detail-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.detail-info-item{background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;}
+.dii-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);margin-bottom:3px;}
+.dii-value{font-size:14px;font-weight:600;color:var(--text);}
+.text-muted{color:var(--text-muted);font-size:13px;}
+.scroll-x{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.scroll-x::-webkit-scrollbar{display:none;}
+
+/* ── Page views ── */
+#app > div { display:none; }
+#app > div.active { display:block; }
+
+/* ── Login ── */
+#view-login body-equiv { background:var(--primary); }
+.login-wrap{min-height:100vh;background:var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;}
+.login-top{text-align:center;margin-bottom:32px;}
+.login-logo{width:80px;height:80px;background:rgba(255,255,255,.15);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto 16px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);}
+.login-title{font-family:'Sora',sans-serif;font-size:30px;font-weight:700;color:#fff;}
+.login-sub{color:rgba(255,255,255,.6);font-size:14px;margin-top:4px;}
+.login-card{background:#fff;border-radius:24px;padding:28px 24px;width:100%;max-width:400px;box-shadow:var(--shadow-lg);}
+.card-title{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px;color:var(--text);}
+.card-sub{font-size:13px;color:var(--text-muted);margin-bottom:22px;}
+.login-error{background:#fdeaea;border:1px solid #f5b5b5;color:var(--danger);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;margin-bottom:14px;display:none;border-left:3px solid var(--danger);}
+.login-error.show{display:block;}
+.login-hint{font-size:11px;color:var(--text-muted);text-align:center;margin-top:14px;line-height:1.6;}
+.login-hint strong{color:var(--primary);}
+.pass-wrap{position:relative;}
+.pass-wrap input{padding-right:44px;}
+.toggle-pass{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;padding:4px;}
+.loading-overlay{position:fixed;inset:0;background:var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;opacity:0;pointer-events:none;transition:opacity .3s;}
+.loading-overlay.show{opacity:1;pointer-events:all;}
+.loading-logo{font-size:48px;margin-bottom:16px;animation:pulse 1s ease-in-out infinite;}
+.loading-text{font-family:'Sora',sans-serif;font-size:16px;font-weight:600;color:#fff;opacity:.8;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.switch-link{font-size:13px;color:rgba(255,255,255,.75);text-align:center;margin-top:18px;cursor:pointer;}
+.switch-link span{color:#fff;font-weight:700;text-decoration:underline;}
+.login-success{background:#e8f5ee;border:1px solid #b5ddc8;color:var(--success);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;margin-bottom:14px;display:none;border-left:3px solid var(--success);}
+.login-success.show{display:block;}
+
+/* ── Dashboard ── */
+.greeting{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;margin-bottom:2px;}
+.greeting-sub{font-size:13px;color:var(--text-muted);margin-bottom:16px;}
+.countdown-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;}
+.countdown-row::-webkit-scrollbar{display:none;}
+.countdown-chip{flex-shrink:0;border-radius:16px;padding:14px 16px;min-width:140px;max-width:160px;cursor:pointer;transition:.15s;text-decoration:none;display:block;}
+.countdown-chip:active{opacity:.85;transform:scale(.97);}
+.chip-assign{background:var(--primary);color:#fff;}
+.chip-upcoming{background:var(--accent);color:#fff;}
+.chip-exam{background:var(--info);color:#fff;}
+.chip-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;opacity:.8;margin-bottom:4px;}
+.chip-days{font-family:'Sora',sans-serif;font-size:26px;font-weight:700;line-height:1;}
+.chip-days span{font-size:13px;font-weight:400;}
+.chip-name{font-size:11px;opacity:.85;margin-top:4px;white-space:normal;word-break:break-word;line-height:1.3;}
+
+/* ── Courses ── */
+.semester-banner{border-radius:var(--radius);padding:20px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;background:var(--primary);}
+.s-title{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;color:#fff;}
+.s-sub{font-size:12px;color:rgba(255,255,255,.65);margin-top:3px;}
+.s-stats{text-align:right;color:#fff;}
+.s-stat-num{font-family:'Sora',sans-serif;font-size:24px;font-weight:700;line-height:1;}
+.s-stat-label{font-size:10px;opacity:.65;}
+.courses-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.course-card{background:var(--card);border-radius:var(--radius);padding:16px 14px;box-shadow:var(--shadow);transition:.2s;position:relative;overflow:hidden;text-decoration:none;display:block;cursor:pointer;}
+.course-card:active{transform:scale(.97);opacity:.9;}
+.course-icon{font-size:30px;margin-bottom:8px;}
+.course-code{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;}
+.course-name{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-top:3px;line-height:1.3;}
+.course-credits{font-size:11px;color:var(--text-muted);margin-top:6px;}
+.course-pending{font-size:10px;font-weight:700;margin-top:4px;}
+@media(min-width:600px){.courses-grid{grid-template-columns:repeat(3,1fr);}}
+
+/* ── Calendar ── */
+.cal-nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cal-month-label{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;}
+.cal-btn{width:38px;height:38px;border-radius:50%;border:2px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text);transition:.15s;}
+.cal-btn:active{background:var(--primary-pale);border-color:var(--primary);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;}
+.cal-day-hdr{text-align:center;font-size:10px;font-weight:700;color:var(--text-muted);padding:5px 0;text-transform:uppercase;}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:13px;cursor:pointer;transition:.15s;position:relative;font-weight:500;color:var(--text);}
+.cal-day:active{background:var(--primary-pale);}
+.cal-day.other{color:var(--text-light);}
+.cal-day.today{background:var(--primary);color:#fff;font-weight:700;}
+.cal-day.has-assign::after{content:'';position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:var(--warning);}
+.cal-day.has-exam::after{content:'';position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:var(--info);}
+.cal-day.has-midterm::after{content:'';position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:var(--danger);}
+.cal-day.today::after{background:rgba(255,255,255,.7);}
+.legend{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);font-weight:600;}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
+.event-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.event-item:last-child{border-bottom:none;}
+.event-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+.ev-name{font-size:13px;font-weight:600;color:var(--text);}
+.ev-meta{font-size:11px;color:var(--text-muted);margin-top:1px;}
+
+/* ── Submitted ── */
+.sub-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);text-decoration:none;transition:.15s;cursor:pointer;}
+.sub-item:last-child{border-bottom:none;padding-bottom:0;}
+.sub-item:active{opacity:.7;}
+.sub-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.sub-info{flex:1;min-width:0;}
+.sub-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sub-meta{font-size:12px;color:var(--text-muted);margin-top:1px;}
+.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.summary-card{background:var(--card);border-radius:var(--radius-sm);padding:14px 12px;text-align:center;box-shadow:var(--shadow);}
+.sum-num{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;}
+.sum-label{font-size:10px;color:var(--text-muted);font-weight:600;margin-top:2px;}
+
+/* ── Profile ── */
+.profile-hero{background:var(--primary);border-radius:var(--radius);padding:28px 20px;text-align:center;color:#fff;margin-bottom:16px;}
+.profile-avatar-lg{width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.4);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;}
+.profile-name-big{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;}
+.profile-id{font-size:13px;opacity:.7;margin-top:3px;}
+.profile-dept{font-size:12px;opacity:.6;margin-top:2px;}
+.profile-stats-row{display:flex;justify-content:center;gap:28px;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.2);}
+.ps-stat .psn{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;}
+.ps-stat .psl{font-size:10px;opacity:.65;margin-top:2px;}
+.settings-group{background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;}
+.settings-item{display:flex;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:.15s;}
+.settings-item:last-child{border-bottom:none;}
+.settings-item:active{background:var(--bg);}
+.si-icon{font-size:20px;width:38px;height:38px;background:var(--bg);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.si-text{flex:1;font-size:14px;font-weight:500;color:var(--text);}
+.si-arrow{color:var(--text-light);font-size:16px;}
+.group-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin:16px 0 8px;}
+
+/* ── Assign Detail ── */
+.detail-header{background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);}
+.status-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.course-tag{font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-pale);padding:3px 12px;border-radius:20px;}
+.detail-title{font-family:'Sora',sans-serif;font-size:19px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:12px;}
+.inst-row{display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;}
+.inst-av{width:42px;height:42px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;flex-shrink:0;}
+.inst-name{font-size:14px;font-weight:600;color:var(--text);}
+.inst-role{font-size:12px;color:var(--text-muted);margin-top:1px;}
+.submit-zone{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+.sz-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;}
+.file-drop{border:2px dashed var(--border);border-radius:var(--radius-sm);padding:28px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--bg);}
+.file-drop.has-file{border-color:var(--primary);background:var(--primary-pale);}
+.file-drop-icon{font-size:36px;margin-bottom:8px;}
+.file-drop-text{font-size:13px;color:var(--text-muted);}
+.file-name-display{font-size:12px;color:var(--primary);font-weight:600;margin-top:6px;}
+.btn-submit{width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:15px;font-size:16px;font-weight:700;font-family:'Sora',sans-serif;cursor:pointer;margin-top:12px;transition:.2s;}
+.btn-submit:active{opacity:.85;}
+.btn-submit:disabled{background:var(--text-light);cursor:not-allowed;}
+.submitted-state{text-align:center;padding:20px 12px;}
+.sub-icon2{font-size:52px;margin-bottom:10px;}
+.sub-title2{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--success);}
+.sub-sub2{font-size:13px;color:var(--text-muted);margin-top:5px;}
+.sub-file2{font-size:12px;color:var(--primary);font-weight:600;margin-top:8px;background:var(--primary-pale);padding:6px 14px;border-radius:20px;display:inline-block;}
+.cant-submit{background:#fdeaea;border:1px solid #f5b5b5;border-radius:var(--radius-sm);padding:14px;display:flex;align-items:flex-start;gap:10px;}
+.cant-icon{font-size:22px;flex-shrink:0;}
+.cant-text{font-size:13px;color:var(--danger);font-weight:600;line-height:1.5;}
+
+/* ── Course Detail ── */
+.course-hero-detail{border-radius:var(--radius);padding:20px 18px;margin-bottom:12px;color:#fff;}
+.ch-icon{font-size:24px;margin-bottom:6px;}
+.ch-code{font-size:12px;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.6px;}
+.ch-name{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;margin-top:2px;}
+.ch-meta{font-size:13px;opacity:.75;margin-top:4px;}
+.ch-stats{display:flex;gap:20px;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.2);}
+.ch-stat .sn{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;}
+.ch-stat .sl{font-size:10px;opacity:.65;margin-top:1px;}
+.tab-bar{display:flex;background:var(--card);border-radius:var(--radius-sm);padding:4px;margin-bottom:12px;gap:4px;box-shadow:var(--shadow);}
+.tab-btn{flex:1;padding:9px;text-align:center;border-radius:8px;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;border:none;background:none;transition:.15s;font-family:'DM Sans',sans-serif;}
+.tab-btn.active{background:var(--primary);color:#fff;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ APP ═══════════════════════════════ -->
+<div id="app">
+
+  <!-- ── LOGIN ── -->
+  <div id="view-login" class="active">
+    <div class="login-wrap">
+      <div class="login-top">
+        <div class="login-logo">📚</div>
+        <div class="login-title">StudyFlow</div>
+        <div class="login-sub">Your academic companion</div>
+      </div>
+      <div class="login-card">
+        <div class="card-title">Welcome back 👋</div>
+        <div class="card-sub">Sign in with your university credentials</div>
+        <div class="login-error" id="login-error">❌ Student ID หรือ Password ไม่ถูกต้อง</div>
+        <div class="form-group">
+          <label>Student ID</label>
+          <input type="text" id="login-id" placeholder="e.g. 6500000001" value="" autocomplete="username"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="pass-wrap">
+            <input type="password" id="login-pass" placeholder="Enter your password" value="" autocomplete="current-password"/>
+            <button class="toggle-pass" onclick="togglePass()" type="button">👁️</button>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="doLogin()">Sign In</button>
+        <div class="login-hint" style="margin-top:14px;">
+          Demo accounts:<br>
+          <strong>6500000001</strong> / password123 &nbsp;·&nbsp;
+          <strong>6500000002</strong> / abcd1234
+        </div>
+      </div>
+    </div>
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-logo">📚</div>
+      <div class="loading-text">Signing you in…</div>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD ── -->
+  <div id="view-dashboard">
+    <header class="site-header">
+      <div class="topbar-left"><span class="topbar-title">📚 StudyFlow</span></div>
+      <nav class="top-nav" id="nav-dashboard"></nav>
+      <div class="topbar-right">
+        <span style="font-size:18px;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1.5px solid var(--border);" onclick="showToast('Help & FAQ — coming soon')">?</span>
+        <span style="font-size:20px;cursor:pointer" onclick="showToast('No new notifications')">🔔</span>
+        <div class="avatar" id="topbar-avatar" onclick="gotoPage('profile')">?</div>
+      </div>
+    </header>
+    <div class="page-content">
+      <div class="greeting" id="dash-greeting">Hi, 👋</div>
+      <div class="greeting-sub" id="dash-greeting-sub">Semester 2 / 2026 &nbsp;·&nbsp; 18 credits</div>
+      <!-- H7 Quick Add button -->
+      <button onclick="openQuickAdd()" style="width:100%;background:var(--bg);border:1.5px dashed var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--text-muted);cursor:pointer;text-align:left;margin-bottom:4px;font-family:'DM Sans',sans-serif;">＋ Quick add assignment or note... <span style="float:right;font-size:11px;background:var(--border);padding:2px 6px;border-radius:4px;">Cmd+K</span></button>
+      <div class="section-title">⏱ Countdown</div>
+      <div class="countdown-row">
+        <div class="countdown-chip chip-assign" onclick="gotoAssign('a1')"><div class="chip-label">Due Soon</div><div class="chip-days">2 <span>days</span></div><div class="chip-name">Database HW3</div></div>
+        <div class="countdown-chip chip-upcoming" onclick="gotoAssign('a2')"><div class="chip-label">Upcoming</div><div class="chip-days">5 <span>days</span></div><div class="chip-name">SE Report</div></div>
+        <div class="countdown-chip chip-exam" onclick="gotoPage('calendar')"><div class="chip-label">Midterm</div><div class="chip-days">12 <span>days</span></div><div class="chip-name">CS301 Midterm</div></div>
+        <div class="countdown-chip chip-exam" onclick="gotoPage('calendar')"><div class="chip-label">Finals</div><div class="chip-days">45 <span>days</span></div><div class="chip-name">All Subjects</div></div>
+      </div>
+      <div class="section-title">📋 Assignments</div>
+      <div class="card" id="dash-assign-list"></div>
+      <div class="section-title">📅 Upcoming Exams</div>
+      <div class="card">
+        <div class="assign-item" onclick="gotoPage('calendar')"><div class="assign-dot" style="background:var(--info)"></div><div class="assign-info"><div class="assign-name">CS301 Midterm Exam</div><div class="assign-meta">Mar 3 &nbsp;·&nbsp; Room A101</div></div><span class="midterm-chip">Midterm</span></div>
+        <div class="assign-item" onclick="gotoPage('calendar')"><div class="assign-dot" style="background:var(--info)"></div><div class="assign-info"><div class="assign-name">SE201 Midterm Exam</div><div class="assign-meta">Mar 5 &nbsp;·&nbsp; Room B203</div></div><span class="midterm-chip">Midterm</span></div>
+        <div class="assign-item" onclick="gotoPage('calendar')" style="border-bottom:none;padding-bottom:0"><div class="assign-dot" style="background:var(--info)"></div><div class="assign-info"><div class="assign-name">All Final Exams</div><div class="assign-meta">Apr 5–15 &nbsp;·&nbsp; TBD</div></div><span class="exam-chip">Final</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COURSES ── -->
+  <div id="view-courses">
+    <header class="site-header">
+      <div class="topbar-left"><span class="topbar-title">My Courses</span></div>
+      <nav class="top-nav" id="nav-courses"></nav>
+      <div class="topbar-right"><div class="avatar" id="topbar-avatar" onclick="gotoPage('profile')">?</div></div>
+    </header>
+    <div class="page-content">
+      <div class="semester-banner">
+        <div><div class="s-title">📚 Semester 2</div><div class="s-sub">Academic Year 2025–2026</div></div>
+        <div class="s-stats"><div class="s-stat-num">6</div><div class="s-stat-label">Courses</div><div class="s-stat-num" style="margin-top:8px">18</div><div class="s-stat-label">Credits</div></div>
+      </div>
+      <div class="courses-grid" id="courses-grid"></div>
+    </div>
+  </div>
+
+  <!-- ── CALENDAR ── -->
+  <div id="view-calendar">
+    <header class="site-header">
+      <div class="topbar-left"><span class="topbar-title">Calendar</span></div>
+      <nav class="top-nav" id="nav-calendar"></nav>
+      <div class="topbar-right"><div class="avatar" id="topbar-avatar" onclick="gotoPage('profile')">?</div></div>
+    </header>
+    <div class="page-content">
+      <div class="card">
+        <div class="cal-nav-row">
+          <button class="cal-btn" onclick="changeMonth(-1)">‹</button>
+          <div class="cal-month-label" id="month-label"></div>
+          <button class="cal-btn" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--warning)"></div>Assignment</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div>Midterm</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--info)"></div>Final Exam</div>
+      </div>
+      <div class="section-title" id="events-heading" style="margin-top:0">Events</div>
+      <div class="card" id="events-list"></div>
+    </div>
+  </div>
+
+  <!-- ── SUBMITTED ── -->
+  <div id="view-submitted">
+    <header class="site-header">
+      <div class="topbar-left"><span class="topbar-title">Submitted</span></div>
+      <nav class="top-nav" id="nav-submitted"></nav>
+      <div class="topbar-right"><div class="avatar" id="topbar-avatar" onclick="gotoPage('profile')">?</div></div>
+    </header>
+    <div class="page-content">
+      <div class="summary-row">
+        <div class="summary-card"><div class="sum-num" style="color:var(--success)" id="cnt-s">—</div><div class="sum-label">On Time</div></div>
+        <div class="summary-card"><div class="sum-num" style="color:var(--danger)" id="cnt-l">—</div><div class="sum-label">Late</div></div>
+        <div class="summary-card"><div class="sum-num" style="color:var(--primary)" id="cnt-o">—</div><div class="sum-label">Open</div></div>
+      </div>
+      <div class="section-title" style="margin-top:0">Submissions</div>
+      <div class="card" id="sub-list"></div>
+      <div class="section-title">Pending</div>
+      <div class="card" id="pending-list"></div>
+    </div>
+  </div>
+
+  <!-- ── PROFILE ── -->
+  <div id="view-profile">
+    <header class="site-header">
+      <div class="topbar-left"><span class="topbar-title">Profile</span></div>
+      <nav class="top-nav" id="nav-profile"></nav>
+      <div class="topbar-right"><div class="avatar" id="topbar-avatar" onclick="gotoPage('profile')">?</div></div>
+    </header>
+    <div class="page-content">
+      <div class="profile-hero">
+        <div class="profile-avatar-lg" id="profile-avatar-lg">?</div>
+        <div class="profile-name-big" id="profile-name-big">—</div>
+        <div class="profile-id" id="profile-id-text">Student ID: —</div>
+        <div class="profile-dept">Faculty of Engineering · Software Engineering</div>
+        <div class="profile-stats-row">
+          <div class="ps-stat"><div class="psn">6</div><div class="psl">Courses</div></div>
+          <div class="ps-stat"><div class="psn">18</div><div class="psl">Credits</div></div>
+          <div class="ps-stat"><div class="psn" id="profile-submitted-count">4</div><div class="psl">Submitted</div></div>
+        </div>
+      </div>
+      <div class="group-label">Account</div>
+      <div class="settings-group">
+        <div class="settings-item" onclick="showToast('Personal info')"><div class="si-icon">👤</div><div class="si-text">Personal Information</div><div class="si-arrow">›</div></div>
+        <div class="settings-item" onclick="showToast('Notifications: On')"><div class="si-icon">🔔</div><div class="si-text">Notifications</div><div class="si-arrow">›</div></div>
+        <div class="settings-item" onclick="showToast('Language: English')"><div class="si-icon">🌐</div><div class="si-text">Language</div><div class="si-arrow">›</div></div>
+      </div>
+      <div class="group-label">Academic</div>
+      <div class="settings-group">
+        <div class="settings-item" onclick="gotoPage('courses')"><div class="si-icon">📚</div><div class="si-text">My Courses</div><div class="si-arrow">›</div></div>
+        <div class="settings-item" onclick="gotoPage('submitted')"><div class="si-icon">✅</div><div class="si-text">Submitted Assignments</div><div class="si-arrow">›</div></div>
+        <div class="settings-item" onclick="gotoPage('calendar')"><div class="si-icon">📅</div><div class="si-text">Exam Schedule</div><div class="si-arrow">›</div></div>
+      </div>
+      <div class="group-label">Support</div>
+      <div class="settings-group">
+        <div class="settings-item" onclick="showToast('Help center')"><div class="si-icon">❓</div><div class="si-text">Help & Support</div><div class="si-arrow">›</div></div>
+        <div class="settings-item" onclick="showToast('Version 1.0.0')"><div class="si-icon">ℹ️</div><div class="si-text">About StudyFlow</div><div class="si-arrow">›</div></div>
+        <div class="settings-item" onclick="openModal('modal-logout')"><div class="si-icon" style="background:#fdeaea">🚪</div><div class="si-text" style="color:var(--danger)">Sign Out</div><div class="si-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ASSIGN DETAIL ── -->
+  <div id="view-assign-detail">
+    <header class="site-header">
+      <div class="topbar-left"><span class="topbar-back" id="assign-back" onclick="goBack()">‹ Home</span></div>
+      <nav class="top-nav" id="nav-assign-detail"></nav>
+      <div class="topbar-right"><div class="avatar" id="topbar-avatar" onclick="gotoPage('profile')">?</div></div>
+    </header>
+    <div class="page-content" id="assign-detail-content"></div>
+  </div>
+
+  <!-- ── COURSE DETAIL ── -->
+  <div id="view-course-detail">
+    <header class="site-header">
+      <div class="topbar-left"><span class="topbar-back" onclick="gotoPage('courses')">‹ Courses</span></div>
+      <nav class="top-nav" id="nav-course-detail"></nav>
+      <div class="topbar-right"><div class="avatar" id="topbar-avatar" onclick="gotoPage('profile')">?</div></div>
+    </header>
+    <div class="page-content">
+      <div class="course-hero-detail" id="course-hero-content"></div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab(this,'assignments')">Assignments</button>
+        <button class="tab-btn" onclick="switchTab(this,'exams')">Exams</button>
+        <button class="tab-btn" onclick="switchTab(this,'info')">Info</button>
+      </div>
+      <div id="tab-content"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ MODALS ═══ -->
+<div class="modal-overlay" id="modal-logout">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Sign Out?</div>
+    <div class="modal-sub">You'll be returned to the login screen.</div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('modal-logout')">Stay</button>
+      <button class="btn-danger" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-submit">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Confirm Submission</div>
+    <div class="modal-sub" id="modal-sub-text">Submit your file?</div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('modal-submit')">Cancel</button>
+      <button class="btn-confirm" onclick="doSubmit()">Submit ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Add Modal -->
+<div class="modal-overlay" id="modal-quickadd">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Quick Add ＋</div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:18px;">
+      <button id="qa-tab-assign" onclick="switchQATab('assign')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--primary);color:#fff;font-family:'DM Sans',sans-serif;">📋 Assignment</button>
+      <button id="qa-tab-note" onclick="switchQATab('note')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--bg);color:var(--text-muted);font-family:'DM Sans',sans-serif;">📝 Note / Reminder</button>
+    </div>
+
+    <!-- Assignment tab -->
+    <div id="qa-panel-assign">
+      <div class="form-group">
+        <label>Assignment Title</label>
+        <input type="text" id="qa-title" placeholder="e.g. Database HW4"/>
+      </div>
+      <div class="form-group">
+        <label>Course</label>
+        <select id="qa-course" style="width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);outline:none;">
+          <option value="CS301">CS301 — Database Systems</option>
+          <option value="SE201">SE201 — Software Engineering</option>
+          <option value="CS401">CS401 — Algorithms</option>
+          <option value="ENG101">ENG101 — English for Tech</option>
+          <option value="MATH301">MATH301 — Discrete Math</option>
+          <option value="NET201">NET201 — Computer Networks</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Due Date</label>
+        <input type="date" id="qa-due" style="width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);outline:none;"/>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeModal('modal-quickadd')">Cancel</button>
+        <button class="btn-confirm" onclick="doQuickAddAssignment()">Add Assignment ＋</button>
+      </div>
+    </div>
+
+    <!-- Note tab -->
+    <div id="qa-panel-note" style="display:none;">
+      <div class="form-group">
+        <label>Note / Reminder</label>
+        <input type="text" id="qa-note-title" placeholder="e.g. Study for CS301 midterm"/>
+      </div>
+      <div class="form-group">
+        <label>Remind me on</label>
+        <input type="date" id="qa-note-date" style="width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);outline:none;"/>
+      </div>
+      <div class="form-group">
+        <label>Details (optional)</label>
+        <input type="text" id="qa-note-detail" placeholder="e.g. Chapters 1–5, focus on SQL joins"/>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeModal('modal-quickadd')">Cancel</button>
+        <button class="btn-confirm" onclick="doQuickAddNote()">Add Note ＋</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══ FIXED BOTTOM NAVIGATION (always accessible while scrolling) ═══ -->
+<nav class="bottom-nav hidden" id="bottom-nav"></nav>
+
+<script>
+// ═══════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════
+const ASSIGNMENTS_DEFAULT = {
+  a1:{id:'a1',title:'Database Design HW3',course:'CS301',courseName:'Database Systems',due:'Feb 21, 2026',dueDate:new Date(2026,1,21),points:100,type:'Homework',status:'open',file:null,instructor:{name:'Dr. Somchai P.',title:'Associate Professor'}},
+  a2:{id:'a2',title:'SE Project Report',course:'SE201',courseName:'Software Engineering',due:'Feb 24, 2026',dueDate:new Date(2026,1,24),points:50,type:'Report',status:'open',file:null,instructor:{name:'Asst.Prof. Nipa K.',title:'Instructor'}},
+  a3:{id:'a3',title:'Algo Problem Set 4',course:'CS401',courseName:'Algorithms',due:'Mar 1, 2026',dueDate:new Date(2026,2,1),points:80,type:'Problem Set',status:'open',file:null,instructor:{name:'Dr. Wiroj T.',title:'Associate Professor'}},
+  a4:{id:'a4',title:'English Essay Draft',course:'ENG101',courseName:'English for Tech',due:'Feb 28, 2026',dueDate:new Date(2026,1,28),points:30,type:'Essay',status:'submitted',submittedOn:'Feb 17, 2026',file:'essay_draft.pdf',instructor:{name:'Aj. Malee S.',title:'Lecturer'}},
+  a5:{id:'a5',title:'Database HW2',course:'CS301',courseName:'Database Systems',due:'Feb 10, 2026',dueDate:new Date(2026,1,10),points:100,type:'Homework',status:'submitted',submittedOn:'Feb 10, 2026',file:'db_hw2.pdf',instructor:{name:'Dr. Somchai P.',title:'Associate Professor'}},
+  a6:{id:'a6',title:'Algo Problem Set 3',course:'CS401',courseName:'Algorithms',due:'Feb 11, 2026',dueDate:new Date(2026,1,11),points:80,type:'Problem Set',status:'late',submittedOn:'Feb 12, 2026',file:'algo_ps3.pdf',instructor:{name:'Dr. Wiroj T.',title:'Associate Professor'}},
+  a7:{id:'a7',title:'SE Requirements Doc',course:'SE201',courseName:'Software Engineering',due:'Feb 5, 2026',dueDate:new Date(2026,1,5),points:50,type:'Document',status:'submitted',submittedOn:'Feb 5, 2026',file:'se_req.docx',instructor:{name:'Asst.Prof. Nipa K.',title:'Instructor'}},
+  a8:{id:'a8',title:'Network Lab Report',course:'NET201',courseName:'Computer Networks',due:'Feb 26, 2026',dueDate:new Date(2026,1,26),points:60,type:'Lab Report',status:'open',file:null,instructor:{name:'Dr. Prasert M.',title:'Associate Professor'}},
+  a9:{id:'a9',title:'Discrete Math HW2',course:'MATH301',courseName:'Discrete Math',due:'Feb 25, 2026',dueDate:new Date(2026,1,25),points:40,type:'Homework',status:'open',file:null,instructor:{name:'Dr. Chaiwat B.',title:'Associate Professor'}},
+};
+const COURSES = {
+  cs301: {code:'CS301',name:'Database Systems',icon:'🗄️',credits:3,color:'#7c3d3d',instructor:'Dr. Somchai P.',room:'ENG-201',schedule:'Mon/Wed 09:00–10:30',assignments:['a1','a5'],midterm:'Mar 3, 2026',final:'Apr 5, 2026'},
+  se201: {code:'SE201',name:'Software Engineering',icon:'⚙️',credits:3,color:'#c17b4e',instructor:'Asst.Prof. Nipa K.',room:'ENG-305',schedule:'Tue/Thu 10:00–11:30',assignments:['a2','a7'],midterm:'Mar 5, 2026',final:'Apr 7, 2026'},
+  cs401: {code:'CS401',name:'Algorithms',icon:'🧮',credits:3,color:'#4a6fa5',instructor:'Dr. Wiroj T.',room:'SCI-101',schedule:'Mon/Fri 13:00–14:30',assignments:['a3','a6'],midterm:'Mar 8, 2026',final:'Apr 9, 2026'},
+  eng101:{code:'ENG101',name:'English for Tech',icon:'📝',credits:2,color:'#4a8c6f',instructor:'Aj. Malee S.',room:'HUM-102',schedule:'Wed 14:00–16:00',assignments:['a4'],midterm:'Mar 10, 2026',final:'Apr 11, 2026'},
+  math301:{code:'MATH301',name:'Discrete Math',icon:'📐',credits:3,color:'#9b59b6',instructor:'Dr. Chaiwat B.',room:'SCI-203',schedule:'Tue/Thu 13:00–14:30',assignments:['a9'],midterm:'Mar 12, 2026',final:'Apr 13, 2026'},
+  net201:{code:'NET201',name:'Computer Networks',icon:'🌐',credits:3,color:'#e67e22',instructor:'Dr. Prasert M.',room:'ENG-106',schedule:'Mon/Wed 15:00–16:30',assignments:['a8'],midterm:'Mar 15, 2026',final:'Apr 15, 2026'},
+};
+const CAL_EVENTS = {
+  '2026-1-21':[{name:'Database Design HW3 Due',type:'assign',aid:'a1'}],
+  '2026-1-24':[{name:'SE Project Report Due',type:'assign',aid:'a2'}],
+  '2026-1-25':[{name:'Discrete Math HW2 Due',type:'assign',aid:'a9'}],
+  '2026-1-26':[{name:'Network Lab Report Due',type:'assign',aid:'a8'}],
+  '2026-1-28':[{name:'English Essay Draft Due',type:'assign',aid:'a4'}],
+  '2026-2-1': [{name:'Algo Problem Set 4 Due',type:'assign',aid:'a3'}],
+  '2026-2-3': [{name:'CS301 Midterm – Room A101',type:'midterm',cid:'cs301'}],
+  '2026-2-5': [{name:'SE201 Midterm – Room B203',type:'midterm',cid:'se201'}],
+  '2026-2-8': [{name:'CS401 Midterm – SCI-101',type:'midterm',cid:'cs401'}],
+  '2026-2-10':[{name:'ENG101 Midterm – HUM-102',type:'midterm',cid:'eng101'}],
+  '2026-2-12':[{name:'MATH301 Midterm – SCI-203',type:'midterm',cid:'math301'}],
+  '2026-2-15':[{name:'NET201 Midterm – ENG-106',type:'midterm',cid:'net201'}],
+  '2026-3-5': [{name:'CS301 Final Exam',type:'exam',cid:'cs301'}],
+  '2026-3-7': [{name:'SE201 Final Exam',type:'exam',cid:'se201'}],
+  '2026-3-9': [{name:'CS401 Final Exam',type:'exam',cid:'cs401'}],
+  '2026-3-11':[{name:'ENG101 Final Exam',type:'exam',cid:'eng101'}],
+  '2026-3-13':[{name:'MATH301 Final Exam',type:'exam',cid:'math301'}],
+  '2026-3-15':[{name:'NET201 Final Exam',type:'exam',cid:'net201'}],
+};
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let currentPage = 'login';
+let backPage = 'dashboard';
+let currentAssignId = 'a1';
+let currentCourseId = 'cs301';
+let calMonth = 1, calYear = 2026;
+let selFile = null;
+const TODAY = new Date(2026,1,19);
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const SHORT  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function getAssignments() {
+  const saved = sessionStorage.getItem('lms_assignments');
+  if (saved) {
+    const p = JSON.parse(saved);
+    Object.values(p).forEach(a => { a.dueDate = new Date(a.dueDate); });
+    return p;
+  }
+  return JSON.parse(JSON.stringify(ASSIGNMENTS_DEFAULT, (k,v) => v instanceof Date ? v.toISOString() : v));
+}
+function getAssignmentsWithDates() {
+  const saved = sessionStorage.getItem('lms_assignments');
+  const base = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(ASSIGNMENTS_DEFAULT, (k,v) => v instanceof Date ? v.toISOString() : v));
+  Object.values(base).forEach(a => { a.dueDate = new Date(a.dueDate); });
+  return base;
+}
+function saveAssignments(data) {
+  sessionStorage.setItem('lms_assignments', JSON.stringify(data));
+}
+
+// ═══════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════
+const NAV_ITEMS = [
+  {id:'dashboard',icon:'🏠',label:'Home'},
+  {id:'calendar', icon:'📅',label:'Calendar'},
+  {id:'courses',  icon:'📚',label:'Courses'},
+  {id:'submitted',icon:'✅',label:'Done'},
+  {id:'profile',  icon:'👤',label:'Profile'},
+];
+
+function buildNav(containerId, active) {
+  // Always render into the fixed bottom-nav bar
+  const bottomNav = document.getElementById('bottom-nav');
+  if (bottomNav) {
+    bottomNav.innerHTML = NAV_ITEMS.map(n => `<div class="nav-item ${n.id===active?'active':''}" onclick="gotoPage('${n.id}')"><div class="nav-icon">${n.icon}</div><div class="nav-label">${n.label}</div></div>`).join('');
+    bottomNav.classList.remove('hidden');
+  }
+  // Also fill legacy per-page nav containers (kept in DOM, hidden via CSS)
+  const el = document.getElementById(containerId);
+  if (el) el.innerHTML = '';
+}
+
+function showView(id) {
+  document.querySelectorAll('#app > div').forEach(d => d.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  // Show/hide fixed bottom nav — hide on login screen
+  const bottomNav = document.getElementById('bottom-nav');
+  if (bottomNav) {
+    if (id === 'login') bottomNav.classList.add('hidden');
+    else bottomNav.classList.remove('hidden');
+  }
+  // Scroll to top
+  window.scrollTo(0,0);
+}
+
+function gotoPage(page) {
+  currentPage = page;
+  showView(page);
+  buildNav('nav-'+page, page);
+  if (page==='dashboard') renderDashboard();
+  else if (page==='courses') renderCourses();
+  else if (page==='calendar') renderCalendar();
+  else if (page==='submitted') renderSubmitted();
+  else if (page==='profile') renderProfile();
+}
+
+function gotoAssign(aid, from, courseId) {
+  currentAssignId = aid;
+  backPage = from || 'dashboard';
+  currentCourseId = courseId || null;
+  buildNav('nav-assign-detail','submitted');
+  const back = document.getElementById('assign-back');
+  if (from==='course' && courseId) back.textContent = '‹ '+(COURSES[courseId]?.code||'Course');
+  else if (from==='submitted') back.textContent = '‹ Submitted';
+  else back.textContent = '‹ Home';
+  showView('assign-detail');
+  renderAssignDetail();
+}
+
+function gotoCourse(cid) {
+  currentCourseId = cid;
+  buildNav('nav-course-detail','courses');
+  showView('course-detail');
+  renderCourseDetail();
+}
+
+function goBack() {
+  if (backPage==='course' && currentCourseId) gotoCourse(currentCourseId);
+  else gotoPage(backPage);
+}
+
+// ═══════════════════════════════════════════════
+//  AUTH — mock university student database
+// ═══════════════════════════════════════════════
+const UNIVERSITY_DB = {
+  '6500000001': { id:'6500000001', name:'Giselle Moonbin',   password:'password123', dept:'Software Engineering' },
+  '6500000002': { id:'6500000002', name:'Methaporn Apiwasuchai', password:'abcd1234',   dept:'Computer Science' },
+  '6500000003': { id:'6500000003', name:'Chompunut Namkort', password:'test1234',   dept:'Information Technology' },
+};
+
+function showLogin() {
+  document.querySelectorAll('#app > div').forEach(d => d.classList.remove('active'));
+  document.getElementById('view-login').classList.add('active');
+  document.getElementById('bottom-nav').classList.add('hidden');
+}
+
+function doLogin() {
+  const id   = document.getElementById('login-id').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err  = document.getElementById('login-error');
+  err.classList.remove('show');
+  if (!id || !pass) {
+    err.textContent = '❌ กรุณากรอก Student ID และ Password ให้ครบ';
+    err.classList.add('show'); return;
+  }
+  const student = UNIVERSITY_DB[id];
+  if (!student) {
+    err.textContent = '❌ ไม่พบ Student ID นี้ในระบบมหาวิทยาลัย';
+    err.classList.add('show');
+    document.getElementById('login-pass').value='';
+    return;
+  }
+  if (student.password !== pass) {
+    err.textContent = '❌ Password ไม่ถูกต้อง';
+    err.classList.add('show');
+    document.getElementById('login-pass').value='';
+    document.getElementById('login-pass').focus();
+    return;
+  }
+  err.classList.remove('show');
+  sessionStorage.setItem('lms_logged_in','1');
+  sessionStorage.setItem('lms_current_user', JSON.stringify(student));
+  document.getElementById('loading-overlay').classList.add('show');
+  setTimeout(()=>{ document.getElementById('loading-overlay').classList.remove('show'); gotoPage('dashboard'); }, 1200);
+}
+
+function togglePass() {
+  const inp = document.getElementById('login-pass');
+  inp.type = inp.type==='password' ? 'text' : 'password';
+}
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('login-id').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pass').focus(); });
+function doLogout() { sessionStorage.clear(); closeModal('modal-logout'); showView('login'); document.getElementById('bottom-nav').classList.add('hidden'); currentPage='login'; }
+
+function getCurrentUser() {
+  try { return JSON.parse(sessionStorage.getItem('lms_current_user') || '{}'); } catch(e) { return {}; }
+}
+function getFirstName(fullName) {
+  if (!fullName) return '';
+  return fullName.trim().split(' ')[0];
+}
+function updateAvatars() {
+  const user = getCurrentUser();
+  const initial = user.name ? user.name.trim()[0].toUpperCase() : '?';
+  document.querySelectorAll('#topbar-avatar').forEach(el => el.textContent = initial);
+}
+
+// ═══════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════
+function renderDashboard() {
+  buildNav('nav-dashboard','dashboard');
+  updateAvatars();
+  const user = getCurrentUser();
+  const firstName = getFirstName(user.name) || 'there';
+  document.getElementById('dash-greeting').textContent = `Hi, ${firstName} 👋`;
+  document.getElementById('dash-greeting-sub').textContent = 'Semester 2 / 2026 \u00a0·\u00a0 18 credits';
+  const assigns = getAssignmentsWithDates();
+  // H4 fix: sort chronologically by due date
+  const order = Object.keys(assigns).filter(id=>['a1','a2','a3','a8','a9','a4'].includes(id));
+  order.sort((a,b)=>assigns[a].dueDate - assigns[b].dueDate);
+  const el = document.getElementById('dash-assign-list');
+  // H7 fix: multi-select mode state
+  const isMulti = el.dataset.multiselect === '1';
+  const selected = JSON.parse(el.dataset.selected||'[]');
+  el.innerHTML = `<div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+    <button onclick="toggleMultiSelect()" style="font-size:11px;font-weight:600;background:none;border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;color:var(--text-muted);">${isMulti?'Cancel':'Select'}</button>
+    ${isMulti&&selected.length>0?`<button onclick="markSelectedDone()" style="font-size:11px;font-weight:600;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:4px 10px;cursor:pointer;margin-left:6px;">✓ Mark ${selected.length} done</button>`:''}
+  </div>`+order.map((id,i)=>{
+    const a=assigns[id]; if(!a) return '';
+    const isSubm = a.status==='submitted'||a.status==='late';
+    const d = Math.ceil((a.dueDate-TODAY)/864e5);
+    let bc=isSubm?'badge-submitted':d<=0?'badge-due':d<=3?'badge-due':d<=7?'badge-soon':'badge-open';
+    let bt=isSubm?'✓ Done':d<=0?'Overdue':d+'d left';
+    let dc=isSubm?'dot-ok':d<=3?'dot-due':'dot-soon';
+    const last = i===order.length-1 ? 'border-bottom:none;padding-bottom:0' : '';
+    const isSel = selected.includes(id);
+    const checkbox = isMulti ? `<div style="width:18px;height:18px;border-radius:4px;border:2px solid ${isSel?'var(--primary)':'var(--border)'};background:${isSel?'var(--primary)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:4px;">${isSel?'<span style="color:#fff;font-size:11px;">✓</span>':''}</div>` : '';
+    return `<div class="assign-item" onclick="${isMulti?`toggleSelect('${id}')`:`gotoAssign('${id}','dashboard')`}" style="${last}">
+      ${checkbox}<div class="assign-dot ${dc}"></div>
+      <div class="assign-info"><div class="assign-name">${a.title}</div><div class="assign-meta">${a.course} &nbsp;·&nbsp; Due ${a.due}</div></div>
+      <div class="assign-badge ${bc}">${bt}</div></div>`;
+  }).join('');
+}
+function toggleMultiSelect(){
+  const el=document.getElementById('dash-assign-list');
+  el.dataset.multiselect = el.dataset.multiselect==='1'?'0':'1';
+  el.dataset.selected='[]';
+  renderDashboard();
+}
+function toggleSelect(id){
+  const el=document.getElementById('dash-assign-list');
+  let sel=JSON.parse(el.dataset.selected||'[]');
+  sel=sel.includes(id)?sel.filter(x=>x!==id):[...sel,id];
+  el.dataset.selected=JSON.stringify(sel);
+  renderDashboard();
+}
+function markSelectedDone(){
+  const el=document.getElementById('dash-assign-list');
+  const sel=JSON.parse(el.dataset.selected||'[]');
+  const assigns=getAssignmentsWithDates();
+  sel.forEach(id=>{assigns[id].status='submitted';assigns[id].submittedOn='Feb 19, 2026';});
+  saveAssignments(assigns);
+  el.dataset.multiselect='0';
+  el.dataset.selected='[]';
+  showToast(`${sel.length} assignment${sel.length>1?'s':''} marked done ✅`);
+  setTimeout(()=>renderDashboard(),300);
+}
+
+// ═══════════════════════════════════════════════
+//  COURSES
+// ═══════════════════════════════════════════════
+function renderCourses() {
+  buildNav('nav-courses','courses');
+  const assigns = getAssignmentsWithDates();
+  document.getElementById('courses-grid').innerHTML = Object.entries(COURSES).map(([id,c])=>{
+    const pending = c.assignments.filter(aid=>assigns[aid]&&assigns[aid].status==='open').length;
+    const pd = pending>0
+      ? `<div class="course-pending" style="color:var(--danger)">${pending} pending</div>`
+      : `<div class="course-pending" style="color:var(--success)">All done ✓</div>`;
+    return `<div class="course-card" onclick="gotoCourse('${id}')">
+      <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${c.color};border-radius:var(--radius) var(--radius) 0 0"></div>
+      <div class="course-icon">${c.icon}</div>
+      <div class="course-code">${c.code}</div>
+      <div class="course-name">${c.name}</div>
+      <div class="course-credits">${c.credits} Credits</div>${pd}</div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  CALENDAR
+// ═══════════════════════════════════════════════
+function renderCalendar() {
+  buildNav('nav-calendar','calendar');
+  renderCal();
+}
+function renderCal() {
+  document.getElementById('month-label').textContent = MONTHS[calMonth]+' '+calYear;
+  const first = new Date(calYear,calMonth,1).getDay();
+  const days = new Date(calYear,calMonth+1,0).getDate();
+  const prev = new Date(calYear,calMonth,0).getDate();
+  let h='';
+  ['S','M','T','W','T','F','S'].forEach(d=>h+=`<div class="cal-day-hdr">${d}</div>`);
+  for(let i=first-1;i>=0;i--) h+=`<div class="cal-day other">${prev-i}</div>`;
+  for(let d=1;d<=days;d++){
+    const k=`${calYear}-${calMonth}-${d}`;
+    const ev=CAL_EVENTS[k]||[];
+    const isT=d===TODAY.getDate()&&calMonth===TODAY.getMonth()&&calYear===TODAY.getFullYear();
+    let cls='cal-day'+(isT?' today':'');
+    if(ev.some(e=>e.type==='midterm')) cls+=' has-midterm';
+    else if(ev.some(e=>e.type==='exam')) cls+=' has-exam';
+    else if(ev.length) cls+=' has-assign';
+    h+=`<div class="${cls}" onclick="dayClick(${d})">${d}</div>`;
+  }
+  const rem=(first+days)%7===0?0:7-(first+days)%7;
+  for(let i=1;i<=rem;i++) h+=`<div class="cal-day other">${i}</div>`;
+  document.getElementById('cal-grid').innerHTML=h;
+  document.getElementById('events-heading').textContent='Events in '+MONTHS[calMonth];
+  let ev='';
+  for(let d=1;d<=days;d++){
+    const k=`${calYear}-${calMonth}-${d}`;
+    (CAL_EVENTS[k]||[]).forEach(e=>{
+      const dc=e.type==='midterm'?'var(--danger)':e.type==='exam'?'var(--info)':'var(--warning)';
+      const click = e.aid ? `gotoAssign('${e.aid}','calendar')` : `gotoCourse('${e.cid}')`;
+      ev+=`<div class="event-item" onclick="${click}">
+        <div class="event-dot" style="background:${dc}"></div>
+        <div><div class="ev-name">${e.name}</div><div class="ev-meta">${SHORT[calMonth]} ${d}, ${calYear}</div></div>
+        <div style="margin-left:auto;color:var(--text-light);font-size:14px">›</div></div>`;
+    });
+  }
+  document.getElementById('events-list').innerHTML = ev||'<p class="text-muted" style="padding:12px;text-align:center">No events this month</p>';
+}
+function dayClick(d){
+  const k=`${calYear}-${calMonth}-${d}`;
+  const ev=CAL_EVENTS[k];
+  showToast(ev?ev[0].name:`No events on ${SHORT[calMonth]} ${d}`);
+}
+function changeMonth(dir){
+  calMonth+=dir; if(calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;}
+  renderCal();
+}
+
+// ═══════════════════════════════════════════════
+//  SUBMITTED
+// ═══════════════════════════════════════════════
+function renderSubmitted() {
+  buildNav('nav-submitted','submitted');
+  const assigns = getAssignmentsWithDates();
+  const all = Object.values(assigns);
+  const sub = all.filter(a=>a.status==='submitted');
+  const late = all.filter(a=>a.status==='late');
+  const open = all.filter(a=>a.status==='open');
+  document.getElementById('cnt-s').textContent=sub.length;
+  document.getElementById('cnt-l').textContent=late.length;
+  document.getElementById('cnt-o').textContent=open.length;
+  const done=[...sub,...late];
+  const sl=document.getElementById('sub-list');
+  sl.innerHTML=done.length?done.map((a,i)=>{
+    const isL=a.status==='late';
+    const last=i<done.length-1?'':'border-bottom:none;padding-bottom:0';
+    return `<div class="sub-item" onclick="gotoAssign('${a.id}','submitted')" style="${last}">
+      <div class="sub-icon" style="background:${isL?'#fdeaea':'#e8f5ee'}">${isL?'⚠️':'✅'}</div>
+      <div class="sub-info"><div class="sub-name">${a.title}</div><div class="sub-meta">${a.course} · ${isL?'Late':'On time'} · ${a.submittedOn||''}</div></div>
+      <div class="assign-badge ${isL?'badge-late':'badge-submitted'}">${isL?'Late':'Done'}</div></div>`;
+  }).join(''):'<p class="text-muted" style="text-align:center;padding:16px">No submissions yet</p>';
+  const pl=document.getElementById('pending-list');
+  pl.innerHTML=open.length?open.map((a,i)=>{
+    const d=Math.ceil((a.dueDate-TODAY)/864e5);
+    const last=i<open.length-1?'':'border-bottom:none;padding-bottom:0';
+    return `<div class="sub-item" onclick="gotoAssign('${a.id}','submitted')" style="${last}">
+      <div class="sub-icon" style="background:#eaf0fa">📋</div>
+      <div class="sub-info"><div class="sub-name">${a.title}</div><div class="sub-meta">${a.course} · Due ${a.due}</div></div>
+      <div class="assign-badge ${d<=2?'badge-due':'badge-open'}">${d<=0?'Overdue':d+'d left'}</div></div>`;
+  }).join(''):'<p class="text-muted" style="text-align:center;padding:16px">🎉 All done!</p>';
+}
+
+// ═══════════════════════════════════════════════
+//  PROFILE
+// ═══════════════════════════════════════════════
+function renderProfile() {
+  buildNav('nav-profile','profile');
+  updateAvatars();
+  const user = getCurrentUser();
+  const initial = user.name ? user.name.trim()[0].toUpperCase() : '?';
+  document.getElementById('profile-avatar-lg').textContent = initial;
+  document.getElementById('profile-name-big').textContent = user.name || '—';
+  document.getElementById('profile-id-text').textContent = `Student ID: ${user.id || '—'}`;
+  const assigns = getAssignmentsWithDates();
+  const count = Object.values(assigns).filter(a=>a.status==='submitted'||a.status==='late').length;
+  document.getElementById('profile-submitted-count').textContent = count;
+}
+
+// ═══════════════════════════════════════════════
+//  ASSIGN DETAIL
+// ═══════════════════════════════════════════════
+function renderAssignDetail() {
+  const assigns = getAssignmentsWithDates();
+  const a = assigns[currentAssignId];
+  const el = document.getElementById('assign-detail-content');
+  if (!a) { el.innerHTML='<p class="text-muted">Not found.</p>'; return; }
+  const isS = a.status==='submitted'||a.status==='late';
+  const isLate = !isS && a.dueDate < TODAY;
+  const d = Math.ceil((a.dueDate-TODAY)/864e5);
+  let sb = isS ? '<span class="assign-badge badge-submitted">✓ Submitted</span>'
+              : isLate ? '<span class="assign-badge badge-late">Overdue</span>'
+              : d<=2 ? `<span class="assign-badge badge-due">${d}d left</span>`
+              : '<span class="assign-badge badge-open">Open</span>';
+  const init = a.instructor.name.replace(/^(Dr\.|Asst\.Prof\.|Aj\.|Prof\.)\s*/,'').charAt(0);
+  let submitSec='';
+  if(isS){
+    submitSec=`<div class="submit-zone"><div class="submitted-state">
+      <div class="sub-icon2">${a.status==='late'?'⚠️':'✅'}</div>
+      <div class="sub-title2">${a.status==='late'?'Submitted Late':'Assignment Submitted!'}</div>
+      <div class="sub-sub2">Submitted on ${a.submittedOn||'recently'}</div>
+      ${a.file?`<div class="sub-file2">📄 ${a.file}</div>`:''}
+      ${a.status==='late'?'<div style="margin-top:10px;font-size:12px;color:var(--danger)">This was received after the deadline.</div>':''}
+    </div></div>`;
+  } else if(isLate){
+    submitSec=`<div class="submit-zone"><div class="sz-title">Submit Assignment</div>
+      <div class="cant-submit"><div class="cant-icon">🚫</div><div class="cant-text">Submission closed — deadline has passed.<br>Contact your instructor for assistance.</div></div></div>`;
+  } else {
+    submitSec=`<div class="submit-zone"><div class="sz-title">Submit Assignment</div>
+      <div class="file-drop" id="file-drop" onclick="document.getElementById('file-input').click()">
+        <input type="file" id="file-input" style="display:none" onchange="onFile(this)">
+        <div class="file-drop-icon">📎</div>
+        <div class="file-drop-text">Tap to choose file (PDF, DOC, ZIP)</div>
+        <div class="file-name-display" id="file-name-display"></div>
+      </div>
+      <button class="btn-submit" id="btn-submit" disabled onclick="openModal('modal-submit')">Submit Assignment</button></div>`;
+  }
+  el.innerHTML=`
+    <div class="detail-header">
+      <div class="status-row"><span class="course-tag">${a.course}</span>${sb}</div>
+      <div class="detail-title">${a.title}</div>
+      <div class="detail-info-grid">
+        <div class="detail-info-item"><div class="dii-label">Due Date</div><div class="dii-value" style="font-size:13px">${a.due}</div></div>
+        <div class="detail-info-item"><div class="dii-label">Points</div><div class="dii-value">${a.points} pts</div></div>
+        <div class="detail-info-item"><div class="dii-label">Type</div><div class="dii-value">${a.type}</div></div>
+        <div class="detail-info-item"><div class="dii-label">Days Left</div><div class="dii-value" style="color:${d<=2&&!isS?'var(--danger)':'var(--text)'}">${isS?'—':d<=0?'Overdue':d+' days'}</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">Instructor</div>
+      <div class="inst-row" onclick="showToast('Email: ${a.instructor.name.toLowerCase().replace(/[ .]/g,'_')}@university.ac.th')">
+        <div class="inst-av">${init}</div>
+        <div><div class="inst-name">${a.instructor.name}</div><div class="inst-role">${a.instructor.title} · ${a.course}</div></div>
+        <div style="margin-left:auto;color:var(--text-light);font-size:14px">›</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">Description</div>
+      <p style="font-size:14px;color:var(--text-muted);line-height:1.7">Complete all required tasks as described in the course handout. Submit in PDF format. Late submissions require instructor approval. Academic integrity must be maintained throughout.</p>
+    </div>
+    ${submitSec}`;
+  document.getElementById('modal-sub-text').textContent=`Submit your file for "${a.title}"?`;
+}
+function onFile(inp){
+  if(inp.files[0]){
+    selFile=inp.files[0].name;
+    document.getElementById('file-name-display').textContent='📄 '+selFile;
+    document.getElementById('file-drop').classList.add('has-file');
+    document.getElementById('btn-submit').disabled=false;
+    document.getElementById('modal-sub-text').textContent=`Submit "${selFile}" for this assignment?`;
+  }
+}
+let _undoTimer=null;
+let _pendingUndo=null;
+function doSubmit(){
+  closeModal('modal-submit');
+  // Save previous state for undo
+  const assigns=getAssignmentsWithDates();
+  _pendingUndo={id:currentAssignId, prevStatus:assigns[currentAssignId].status, prevFile:assigns[currentAssignId].file||null};
+  assigns[currentAssignId].status='submitted';
+  assigns[currentAssignId].submittedOn='Feb 19, 2026';
+  assigns[currentAssignId].file=selFile;
+  saveAssignments(assigns);
+  selFile=null;
+  showUndoToast('Submitted! ✅', 'Undo', ()=>{
+    if(_pendingUndo){
+      const a2=getAssignmentsWithDates();
+      a2[_pendingUndo.id].status=_pendingUndo.prevStatus;
+      a2[_pendingUndo.id].file=_pendingUndo.prevFile;
+      delete a2[_pendingUndo.id].submittedOn;
+      saveAssignments(a2);
+      _pendingUndo=null;
+      showToast('Submission undone ↩️');
+      setTimeout(()=>renderAssignDetail(),300);
+    }
+  });
+  setTimeout(()=>renderAssignDetail(),400);
+}
+function showUndoToast(msg, actionLabel, onAction){
+  const t=document.getElementById('toast');
+  t.innerHTML=`${msg} <span id="undo-btn" style="margin-left:10px;text-decoration:underline;cursor:pointer;color:#ffcf8b;font-weight:700">${actionLabel}</span>`;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  const undoBtn=document.getElementById('undo-btn');
+  if(undoBtn) undoBtn.onclick=(e)=>{e.stopPropagation();t.classList.remove('show');clearTimeout(_toastTimer);onAction();};
+  _toastTimer=setTimeout(()=>{t.classList.remove('show');_pendingUndo=null;},5000);
+}
+
+// ═══════════════════════════════════════════════
+//  COURSE DETAIL
+// ═══════════════════════════════════════════════
+function renderCourseDetail() {
+  const c = COURSES[currentCourseId];
+  document.getElementById('course-hero-content').style.background = c.color;
+  document.getElementById('course-hero-content').innerHTML=`
+    <div class="ch-icon">${c.icon}</div>
+    <div class="ch-code">${c.code}</div>
+    <div class="ch-name">${c.name}</div>
+    <div class="ch-meta">${c.schedule} · ${c.room}</div>
+    <div class="ch-stats">
+      <div class="ch-stat"><div class="sn">${c.assignments.length}</div><div class="sl">Assignments</div></div>
+      <div class="ch-stat"><div class="sn">${c.credits}</div><div class="sl">Credits</div></div>
+      <div class="ch-stat"><div class="sn">${c.room}</div><div class="sl">Room</div></div>
+    </div>`;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn')[0].classList.add('active');
+  renderCourseTab('assignments');
+}
+function switchTab(btn, tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCourseTab(tab);
+}
+function renderCourseTab(tab){
+  const c=COURSES[currentCourseId];
+  const el=document.getElementById('tab-content');
+  const assigns=getAssignmentsWithDates();
+  if(tab==='assignments'){
+    if(!c.assignments.length){el.innerHTML='<div class="card"><p class="text-muted" style="text-align:center;padding:20px">No assignments yet</p></div>';return;}
+    el.innerHTML='<div class="card">'+c.assignments.map((id,i)=>{
+      const a=assigns[id];
+      const isS=a.status==='submitted'||a.status==='late';
+      const d=Math.ceil((a.dueDate-TODAY)/864e5);
+      const bc=isS?'badge-submitted':d<=3?'badge-due':'badge-open';
+      const bt=isS?'✓ Done':d<=0?'Overdue':d+'d left';
+      const dc=isS?'dot-ok':d<=3?'dot-due':'dot-soon';
+      const last=i<c.assignments.length-1?'':'border-bottom:none;padding-bottom:0';
+      return `<div class="assign-item" onclick="gotoAssign('${id}','course','${currentCourseId}')" style="${last}">
+        <div class="assign-dot ${dc}"></div>
+        <div class="assign-info"><div class="assign-name">${a.title}</div><div class="assign-meta">Due ${a.due} · ${a.points}pts</div></div>
+        <div class="assign-badge ${bc}">${bt}</div></div>`;
+    }).join('')+'</div>';
+  } else if(tab==='exams'){
+    el.innerHTML=`<div class="card">
+      <div class="assign-item" onclick="gotoPage('calendar')"><div class="assign-dot" style="background:var(--danger)"></div><div class="assign-info"><div class="assign-name">Midterm Exam</div><div class="assign-meta">${c.midterm} · ${c.room}</div></div><span class="midterm-chip">Midterm</span></div>
+      <div class="assign-item" onclick="gotoPage('calendar')" style="border-bottom:none;padding-bottom:0"><div class="assign-dot" style="background:var(--info)"></div><div class="assign-info"><div class="assign-name">Final Exam</div><div class="assign-meta">${c.final} · TBD</div></div><span class="exam-chip">Final</span></div>
+    </div>`;
+  } else {
+    el.innerHTML=`<div class="card"><div class="detail-info-grid">
+      <div class="detail-info-item"><div class="dii-label">Instructor</div><div class="dii-value" style="font-size:13px">${c.instructor}</div></div>
+      <div class="detail-info-item"><div class="dii-label">Credits</div><div class="dii-value">${c.credits}</div></div>
+      <div class="detail-info-item"><div class="dii-label">Room</div><div class="dii-value">${c.room}</div></div>
+      <div class="detail-info-item"><div class="dii-label">Schedule</div><div class="dii-value" style="font-size:13px">${c.schedule}</div></div>
+      <div class="detail-info-item"><div class="dii-label">Midterm</div><div class="dii-value" style="font-size:14px;color:var(--danger)">${c.midterm}</div></div>
+      <div class="detail-info-item"><div class="dii-label">Final</div><div class="dii-value" style="font-size:14px;color:var(--info)">${c.final}</div></div>
+    </div></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════
+let _toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.addEventListener('click',e=>{
+  document.querySelectorAll('.modal-overlay').forEach(o=>{ if(e.target===o) o.classList.remove('show'); });
+});
+
+// ═══════════════════════════════════════════════
+//  QUICK ADD
+// ═══════════════════════════════════════════════
+function openQuickAdd() {
+  // set default date to today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('qa-due').value = today;
+  document.getElementById('qa-note-date').value = today;
+  document.getElementById('qa-title').value = '';
+  document.getElementById('qa-note-title').value = '';
+  document.getElementById('qa-note-detail').value = '';
+  switchQATab('assign');
+  openModal('modal-quickadd');
+}
+function switchQATab(tab) {
+  const isAssign = tab === 'assign';
+  document.getElementById('qa-panel-assign').style.display = isAssign ? 'block' : 'none';
+  document.getElementById('qa-panel-note').style.display   = isAssign ? 'none'  : 'block';
+  document.getElementById('qa-tab-assign').style.background = isAssign ? 'var(--primary)' : 'var(--bg)';
+  document.getElementById('qa-tab-assign').style.color     = isAssign ? '#fff' : 'var(--text-muted)';
+  document.getElementById('qa-tab-note').style.background  = isAssign ? 'var(--bg)' : 'var(--primary)';
+  document.getElementById('qa-tab-note').style.color       = isAssign ? 'var(--text-muted)' : '#fff';
+}
+function doQuickAddAssignment() {
+  const title = document.getElementById('qa-title').value.trim();
+  const course = document.getElementById('qa-course').value;
+  const due = document.getElementById('qa-due').value;
+  if (!title) { showToast('❌ กรุณากรอกชื่อ assignment'); return; }
+  if (!due)   { showToast('❌ กรุณาเลือกวันกำหนดส่ง'); return; }
+  const assigns = getAssignmentsWithDates();
+  const newId = 'qa_' + Date.now();
+  const dueDate = new Date(due);
+  const dueFmt = dueDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const COURSE_NAMES = {CS301:'Database Systems',SE201:'Software Engineering',CS401:'Algorithms',ENG101:'English for Tech',MATH301:'Discrete Math',NET201:'Computer Networks'};
+  assigns[newId] = {
+    id:newId, title, course, courseName:COURSE_NAMES[course]||course,
+    due:dueFmt, dueDate, points:100, type:'Homework',
+    status:'open', file:null,
+    instructor:{name:'Instructor',title:'Lecturer'}
+  };
+  saveAssignments(assigns);
+  closeModal('modal-quickadd');
+  showToast(`Added: ${title} ✅`);
+  setTimeout(()=>renderDashboard(), 300);
+}
+function doQuickAddNote() {
+  const title = document.getElementById('qa-note-title').value.trim();
+  const date  = document.getElementById('qa-note-date').value;
+  const detail = document.getElementById('qa-note-detail').value.trim();
+  if (!title) { showToast('❌ กรุณากรอกชื่อ note/reminder'); return; }
+  // Store notes in localStorage
+  const notes = JSON.parse(localStorage.getItem('lms_notes')||'[]');
+  notes.unshift({ id:'n_'+Date.now(), title, date, detail, createdAt: new Date().toISOString() });
+  localStorage.setItem('lms_notes', JSON.stringify(notes));
+  closeModal('modal-quickadd');
+  showToast(`Reminder saved: ${title} 📝`);
+}
+// Cmd+K shortcut
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key==='k') { e.preventDefault(); if(currentPage==='dashboard') openQuickAdd(); }
+});
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+if(sessionStorage.getItem('lms_logged_in')){
+  gotoPage('dashboard');
+}
+</script>
+</body>
+</html>
