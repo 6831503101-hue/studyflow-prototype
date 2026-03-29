@@ -737,6 +737,7 @@ function togglePass() {
 }
 document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 document.getElementById('login-id').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pass').focus(); });
+
 function doLogout() { sessionStorage.clear(); closeModal('modal-logout'); showView('login'); document.getElementById('bottom-nav').classList.add('hidden'); currentPage='login'; }
 
 function getCurrentUser() {
