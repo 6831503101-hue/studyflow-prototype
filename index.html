@@ -1241,28 +1241,44 @@ function sendAIMessage() {
   const text = input.value.trim();
   if(!text) return;
 
-  // Add User Message
+  // 1. ดึงข้อมูล User ที่ Login อยู่ปัจจุบันจากระบบ StudyFlow
+  const currentUser = JSON.parse(localStorage.getItem('lms_user') || '{}');
+  const loggedInId = currentUser.id; // จะได้ค่าเช่น '6500000001'
+
+  // แสดงข้อความที่ User พิมพ์
   msgBody.innerHTML += `<div class="msg msg-user">${text}</div>`;
   input.value = '';
   msgBody.scrollTop = msgBody.scrollHeight;
 
-  // AI Response Logic (Hallucination Trap)
+  // AI เริ่มประมวลผล
   setTimeout(() => {
     let response = "";
-    const studentIdMatch = text.match(/\d{10}/) || text.match(/\d{3}/);
-    const inputId = studentIdMatch ? studentIdMatch[0] : null;
-    const validIds = ['6500000001', '6500000002', '001', '002'];
+    
+    // 2. ดึงตัวเลขรหัสจากคำถาม (มองหาเลข 3 หลักขึ้นไป)
+    const studentIdMatch = text.match(/\d{3,10}/);
+    const queriedId = studentIdMatch ? studentIdMatch[0] : null;
 
-    if (inputId && !validIds.includes(inputId)) {
-      // TRAP DETECTED!
-      response = `
-        <div>ขออภัยค่ะ ฉันไม่สามารถให้ข้อมูลของรหัส <b>${inputId}</b> ได้</div>
-        <div class="hallucination-alert">⚠️ [Security Alert]: ไม่พบรหัสนักศึกษานี้ในระบบมหาวิทยาลัย ระบบป้องกันข้อมูลเท็จ (Anti-Hallucination) ได้ระงับการตอบคำถามเพื่อความปลอดภัย</div>
-      `;
-    } else if (text.includes("การบ้าน") || text.includes("งาน")) {
-      response = "ตอนนี้คุณมีงานที่ใกล้ส่งที่สุดคือ Database HW3 อีก 2 วันค่ะ อย่าลืมทำนะคะ!";
+    if (queriedId) {
+      // 3. เช็คว่ารหัสที่ถาม ตรงกับรหัสที่ Login อยู่ตอนนี้ไหม
+      if (queriedId !== loggedInId) {
+        // ถ้าไม่ตรง -> แสดง Hallucination Guard (ตัวแดง)
+        response = `
+          <div>ขออภัยค่ะ ระบบไม่พบสิทธิ์การเข้าถึงข้อมูลของรหัส <b>${queriedId}</b></div>
+          <div class="hallucination-alert" style="color:var(--danger); font-weight:bold; font-size:12px; margin-top:5px;">
+            ⚠️ [Privacy Guard]: คุณกำลังใช้งานด้วยรหัส ${loggedInId} ระบบไม่อนุญาตให้เข้าถึงหรือสร้างข้อมูลของรหัสอื่นเพื่อป้องกัน AI Hallucination
+          </div>
+        `;
+      } else {
+        // ถ้าตรง -> ตอบข้อมูลปกติ
+        response = `ยืนยันตัวตนรหัส ${queriedId} สำเร็จค่ะ คุณมีงานที่ต้องส่งเร็วๆ นี้คือ Database HW3 ต้องการให้ช่วยสรุปรายละเอียดไหมคะ?`;
+      }
     } else {
-      response = "ฉันสามารถช่วยตรวจสอบตารางสอน วันส่งงาน หรือเช็คข้อมูลนักศึกษาให้คุณได้ค่ะ ลองระบุรหัสนักศึกษาดูไหมคะ?";
+      // กรณีถามคำถามทั่วไปที่ไม่มีตัวเลข
+      if (text.includes("งาน") || text.includes("การบ้าน")) {
+        response = `คุณ ${currentUser.name || 'นักศึกษา'} มีงานที่ต้องส่ง 1 รายการคือ Database HW3 ค่ะ`;
+      } else {
+        response = "สวัสดีค่ะ ฉันคือ StudyFlow AI ยินดีช่วยเหลือด้านข้อมูลการเรียนเฉพาะบุคคลค่ะ";
+      }
     }
 
     msgBody.innerHTML += `<div class="msg msg-ai">${response}</div>`;
